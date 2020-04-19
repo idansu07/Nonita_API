@@ -1,4 +1,5 @@
 const mongoose = require('mongoose')
+const Comment = require('../models/comment')
 
 const postSchema = new mongoose.Schema({
     content:{
@@ -22,25 +23,6 @@ const postSchema = new mongoose.Schema({
             required:true
         }
     }],
-    comments:[{
-        owner:{
-            type: mongoose.Schema.Types.ObjectId,
-            required:true,
-            ref: 'User'
-        },
-        content:{
-            type:String,
-            trim:true,
-            required:true
-        },
-        createdAt:{
-            type:Date,
-            required:true
-        },
-        updatedAt:{
-            type:Date
-        }
-    }],
     owner:{
         type: mongoose.Schema.Types.ObjectId,
         required:true,
@@ -50,18 +32,28 @@ const postSchema = new mongoose.Schema({
     timestamps:true,
     toObject:{
         transform: function (doc, ret) {
+            ret.comments
         }
     },
     toJSON:{
-        transform: function (doc, ret) {
+        virtuals: true,
+        transform: function (doc, ret, options) {
+            ret.comments = [...doc.comments]
+            return ret
         }
     }
 })
 
+postSchema.virtual('comments',{
+    ref:'Comment',
+    localField: '_id',
+    foreignField: 'post'
+ })
+
 postSchema.statics.getPosts = async(spec) => {
     let query = {}
     if(spec.id) query._id = spec.id
-    if(spec.userId) query._owner = spec.userId
+    if(spec.userId) query.owner = spec.userId
     try {
         const posts = await Post.find(query).sort('-createdAt').populate('owner').exec()
         return posts
@@ -74,7 +66,7 @@ postSchema.statics.getPosts = async(spec) => {
 postSchema.methods.savePost = async function(){
     const post = this
     try {
-        return await post.save(post) 
+        return await post.save(post)
     } catch (error) {
         throw new Error(error)
     }

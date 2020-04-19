@@ -80,6 +80,12 @@ userSchema.virtual('posts',{
     foreignField: 'owner'
  })
 
+ userSchema.virtual('comments',{ 
+    ref:'Comment',
+    localField: '_id',
+    foreignField: 'owner'
+ })
+
 userSchema.pre('save' ,async function(next){
     const user = this
     if(user.isModified('password')){

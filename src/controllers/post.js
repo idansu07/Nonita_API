@@ -35,6 +35,7 @@ router.post('/posts/like' , auth , async(req,res) => {
     }
 })
 
+
 //Patch
 router.patch('/posts/:id' , auth,uploadImageBuffer.array('file') , async(req,res) => {
     try {

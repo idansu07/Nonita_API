@@ -1,5 +1,6 @@
 require('../db/mongoose')
 const postModel = require('../models/post')
+const Comment = require('../models/comment')
 const sharp = require('sharp')
 
 class PostService {
@@ -12,10 +13,17 @@ class PostService {
         try {
             const posts = await this.postModel.getPosts(spec)
 
+            let postIds = [];
             posts.forEach(post => {
                 post.owner = post.owner
+                postIds.push(post._id);
             })
-
+            let comments = await Comment.find({ post: {$in: postIds} }).populate('owner').sort({ post:1, createdAt:-1 })
+            if(comments){
+                posts.forEach(post => {
+                    post.comments = comments.filter(comment => ( comment.post ==  post.id))
+                })
+            }
             return posts
         } catch (error) {
             throw error
