@@ -25,10 +25,20 @@ router.post('/posts' , auth , uploadImageBuffer.array('file') , async(req,res) =
     }
 })
 
-//Patch
-router.patch('/posts' , auth , async(req,res) => {
+//This route handle like and unlike
+router.post('/posts/like' , auth , async(req,res) => {
     try {
-        const post = await new postService().updatePost(req.body)
+        const post = await new postService().setLike(req.body.id,req.user)
+        res.status(200).send(post)
+    } catch (error) {
+        res.status(500).send(error.message)
+    }
+})
+
+//Patch
+router.patch('/posts/:id' , auth,uploadImageBuffer.array('file') , async(req,res) => {
+    try {
+        const post = await new postService().updatePost(req.params.id,req.body,req.files)
         res.status(200).send(post)
     } catch (error) {
         res.status(500).send(error.message)

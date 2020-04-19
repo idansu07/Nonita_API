@@ -47,18 +47,26 @@ const postSchema = new mongoose.Schema({
         ref: 'User'
     }
 }, {
-    timestamps:true
+    timestamps:true,
+    toObject:{
+        transform: function (doc, ret) {
+        }
+    },
+    toJSON:{
+        transform: function (doc, ret) {
+        }
+    }
 })
 
 postSchema.statics.getPosts = async(spec) => {
     let query = {}
     if(spec.id) query._id = spec.id
     if(spec.userId) query._owner = spec.userId
-
     try {
         const posts = await Post.find(query).sort('-createdAt').populate('owner').exec()
         return posts
     } catch (error) {
+        console.log(error)
         throw new Error(error)
     }
 }
