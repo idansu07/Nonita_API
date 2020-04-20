@@ -94,12 +94,10 @@ class PostService {
         }
     }
 
-    removePost = async (postId) => {
+    removePost = async (id,userId) => {
         try {
-            if(!post._id) throw new Error('postId is required')
-            const postDB = await this.postModel.getPosts({ id: postId , userId: updatePost.owner })
-            if(!postDB) throw new Error('post not found')
-            await postDB.remove()
+            if(!id) throw new Error('postId is required')
+            return await this.postModel.removePost(id,userId)
         } catch (error) {
             throw error
         }

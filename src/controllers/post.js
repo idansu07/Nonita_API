@@ -47,10 +47,10 @@ router.patch('/posts/:id' , auth,uploadImageBuffer.array('file') , async(req,res
 })
 
 //Delete
-router.delete('/posts' , auth , async(req,res) => {
+router.delete('/posts/:id' , auth , async(req,res) => {
     try {
-        await new postService().removePost(req.query._id)
-        res.status(200).send()
+        const post = await new postService().removePost(req.params.id , req.user.id)
+        res.status(200).send(post)
     } catch (error) {
         res.status(500).send(error.message)
     }

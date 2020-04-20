@@ -32,6 +32,28 @@ class CommentService {
         }
     }
 
+    updateComment = async (id,commentData,userId) => {
+        if(!commentData.text) throw new Error('Text is empty')
+        try {
+            const comments = await this.commentModel.getComments({ id , userId })
+            if(!comments || comments.length === 0) throw new Error('Comment not found')
+            const comment = comments[0]
+            comment.text = commentData.text
+            return await comment.saveComment()
+        } catch (error) {
+            throw error
+        }
+    }
+
+    removeComment = async (id,userId) => {
+        try {
+            if(!id) throw new Error('commentId is required')
+            return await this.commentModel.removeComment(id,userId)
+        } catch (error) {
+            throw error
+        }
+    }   
+
 }
 
 module.exports = CommentService

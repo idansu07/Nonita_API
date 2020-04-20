@@ -23,4 +23,22 @@ router.post('/comment' , auth , async(req,res) => {
     }
 })
 
+router.patch('/comment/:id' , auth , async(req,res) => {
+    try {
+        const comment = await new commentService().updateComment(req.params.id,req.body , req.user._id)
+        res.status(200).send(comment)
+    } catch (error) {
+        res.status(500).send(error.message)
+    }
+})
+
+router.delete('/comment/:id' , auth, async(req,res) => {
+    try {
+        const comment = await new commentService().removeComment(req.params.id , req.user._id)
+        res.status(200).send(comment)
+    } catch (error) {
+        res.status(500).send(error.message)
+    }
+})
+
 module.exports = router

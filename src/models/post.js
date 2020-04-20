@@ -38,7 +38,7 @@ const postSchema = new mongoose.Schema({
     toJSON:{
         virtuals: true,
         transform: function (doc, ret, options) {
-            ret.comments = [...doc.comments]
+            ret.comments = doc.comments  ? [...doc.comments] : []
             return ret
         }
     }
@@ -63,6 +63,16 @@ postSchema.statics.getPosts = async(spec) => {
     }
 }
 
+postSchema.statics.removePost = async(id,userId) => {
+    try {
+        const post = await Post.findByIdAndRemove({ _id: id , owner:userId})
+        await post.remove()
+        return post
+    } catch (error) {
+        throw new Error(error)
+    }
+}
+
 postSchema.methods.savePost = async function(){
     const post = this
     try {
@@ -72,7 +82,11 @@ postSchema.methods.savePost = async function(){
     }
 }
 
-
+postSchema.pre('remove' , async function(next) {
+    const post = this
+    await Comment.deleteMany({ post: post._id })
+    next()
+})
 
 const Post = mongoose.model('Post',postSchema)
 
