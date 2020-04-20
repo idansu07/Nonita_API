@@ -32,17 +32,16 @@ const commentSchema = new mongoose.Schema({
 })
 
 commentSchema.statics.getComments = async(spec) => {
-    let query = {}
-    if(spec.id) query._id = spec.id
-    if(spec.userId) query.owner = spec.userId
-    if(spec.parentId) query.parent = spec.parentId
-    if(spec.postId) query.post = spec.postId
+    let queryFind = {}
+    if(spec.id) queryFind._id = spec.id
+    if(spec.userId) queryFind.owner = spec.userId
+    if(spec.parentId) queryFind.parent = {$in: spec.parentIds}
+    if(spec.postIds) queryFind.post = {$in: spec.postIds}
     try {
-        const comments = await Comment.find(query).
-            sort('-createdAt').
-            populate('owner').
-            populate('parent').
-            exec()
+        let query = Comment.find(queryFind).sort('createdAt')
+        if(spec.includeOwner) query.populate('owner')
+        if(spec.includeParent) query.populate('parent')
+        const comments = await query.exec()
         return comments
     } catch (error) {
         console.log(error)

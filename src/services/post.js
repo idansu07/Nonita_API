@@ -1,24 +1,28 @@
 require('../db/mongoose')
-const postModel = require('../models/post')
-const Comment = require('../models/comment')
+const mongoosePostModel = require('../models/post')
+const commentService = require('./comment')
 const sharp = require('sharp')
 
 class PostService {
 
-    constructor(model = postModel){
-        this.postModel =  model
+    constructor(postModel = mongoosePostModel){
+        this.postModel =  postModel
     }
 
     getPosts = async (spec) => {
         try {
             const posts = await this.postModel.getPosts(spec)
-
             let postIds = [];
             posts.forEach(post => {
                 post.owner = post.owner
                 postIds.push(post._id);
             })
-            let comments = await Comment.find({ post: {$in: postIds} }).populate('owner').sort({ post:1, createdAt:-1 })
+            const commentSpec = {
+                postIds,
+                includeOwner:true,
+                includeParent:true
+            }
+            let comments = await new commentService().getComments(commentSpec)
             if(comments){
                 posts.forEach(post => {
                     post.comments = comments.filter(comment => ( comment.post ==  post.id))
@@ -52,7 +56,7 @@ class PostService {
 
     createPost = async (postData , userId , files) => {
         try {
-            const post = new postModel(postData)
+            const post = new this.postModel(postData)
             post.owner = userId
             if(files.length > 0){
                 for (let index = 0; index < files.length; index++) {

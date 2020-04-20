@@ -1,9 +1,10 @@
 require('../db/mongoose')
-const usermodel = require('../models/user')
+const mongooseUserModel = require('../models/user')
 const sharp = require('sharp')
+
 class userService {
 
-    constructor(model = usermodel){
+    constructor(model = mongooseUserModel){
        this.userModel =  model
     }
 

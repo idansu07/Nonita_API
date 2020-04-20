@@ -1,15 +1,15 @@
 require('../db/mongoose')
-const commentModel = require('../models/comment')
+const mongooseCommentModel = require('../models/comment')
 
 class CommentService {
 
-    constructor(model =  commentModel){
+    constructor(model =  mongooseCommentModel){
         this.commentModel = model
     }
 
     getComments = async (spec) => {
         try {
-            const comments = await this.commentModel().getComments(spec)
+            const comments = await this.commentModel.getComments(spec)
             comments.forEach(comment => {
                 comment.owner = comment.owner
             })
