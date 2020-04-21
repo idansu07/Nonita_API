@@ -11,6 +11,14 @@ class userService {
     getUsers = async (spec) =>{
         try {
             const users = await this.userModel.getUsers(spec)
+            for (let index = 0; index < users.length; index++) {
+                let user = users[index];
+                
+                //Get friends list
+                const friendsIds = user.friendsList.map(f => (f.user.toJSON()))
+                const userFriends = await this.userModel.getUsers({id: {$in:friendsIds}})                
+                Object.assign(user.friendsList , userFriends)
+            }
             return users
         } catch (error) {
             throw error
@@ -80,6 +88,70 @@ class userService {
             throw error
         }
     }
+
+    setFriendRequest = async (senderUser , reciverUserId) => {
+        try {
+
+            const users = await this.userModel.getUsers({id:reciverUserId})
+            if(!users || users.length === 0) throw new Error('Reciver user not found')
+            const reciverUser = users[0]
+
+            //Update sender user
+            senderUser.sentRequests = [...senderUser.sentRequests , { 
+                user:reciverUser._id , 
+                createdAt:new Date()
+            }]
+            
+            //Update reciver user
+            reciverUser.requests = [...reciverUser.requests , { 
+                user:senderUser._id,
+                createdAt:new Date(),
+                userName:senderUser.userName
+            }]
+
+            await reciverUser.saveUser()
+            return await senderUser.saveUser()
+
+        } catch (error) {
+            throw error
+        }
+        
+    }
+
+    acceptedFriendRequest = async (acceptedUser , requestId) => {
+
+        const request = acceptedUser.requests.find(req => (req.id === requestId))
+        if(!request) throw new Error('Request not found')
+
+        const senderId = request.user // Maybe need to replace this to user._id
+        try {
+            const users = await this.userModel.getUsers({ id: senderId })
+            if(!users || users.length === 0) throw new Error('Sender user not found')
+            const sender = users[0] 
+
+            //Update sender
+            sender.sentRequests = sender.sentRequests.filter(req => (req.id !== acceptedUser._id))
+            sender.friendsList = [...sender.friendsList , { 
+                user: acceptedUser._id,
+                createdAt:new Date()
+            }]
+
+            //Update acceptedUser
+            acceptedUser.requests = acceptedUser.requests.filter(req => (req.id !== requestId))
+            acceptedUser.friendsList = [...acceptedUser.friendsList , {
+                user: sender._id,
+                createdAt:new Date()
+            }]
+
+            await sender.saveUser()
+            return await acceptedUser.saveUser()
+
+        } catch (error) {
+            throw error
+        }
+        
+    }
+
 }
 
 

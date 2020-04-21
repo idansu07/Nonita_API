@@ -57,20 +57,57 @@ const userSchema = new mongoose.Schema({
     avatar:{
             type:Buffer,
             contentType: String
-    }
+    },
+    sentRequests:[{
+        user:{
+            type: mongoose.Schema.Types.ObjectId,
+            required:true,
+            ref: 'User'
+        },
+        createdAt:{
+            type:Date,
+            required:true
+        }
+    }],
+    requests:[{
+        user:{
+            type: mongoose.Schema.Types.ObjectId,
+            required:true,
+            ref: 'User'
+        },
+        userName:{
+            type:String,
+            required:true
+        },
+        createdAt:{
+            type:Date,
+            required:true
+        }
+    }],
+    friendsList:[{
+        user:{
+            type: mongoose.Schema.Types.ObjectId,
+            required:true,
+            ref: 'User'
+        },
+        createdAt:{
+            type:Date,
+            required:true
+        }
+    }]
 }, {
     timestamps:true,
     toObject:{
         transform: function (doc, ret) {
             delete ret.tokens;
             delete ret.password
-          }
+        }
     },
     toJSON:{
         transform: function (doc, ret) {
             delete ret.tokens;
             delete ret.password
-          }
+        }
     }
 })
 
@@ -85,6 +122,7 @@ userSchema.virtual('posts',{
     localField: '_id',
     foreignField: 'owner'
  })
+
 
 userSchema.pre('save' ,async function(next){
     const user = this

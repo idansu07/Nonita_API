@@ -18,7 +18,8 @@ router.get('/users' , auth ,async (req,res) => {
 
 router.get('/users/me' , auth , async(req,res) => {
     try {
-        res.status(200).send(req.user)
+        const users =  await new userService().getUsers({ id:req.user._id })
+        res.status(200).send(users[0])
     } catch (error) {
         res.status(400).send(error.message)
     }
@@ -47,6 +48,24 @@ router.post('/users/logout' , auth ,  async(req,res) => {
     try {
         await new userService().logout(req.user,req.token)
         res.status(200).send()
+    } catch (error) {
+        res.status(500).send(error.message)
+    }
+})
+
+router.post('/users/setFriendRequest' , auth , async(req,res) => {
+    try {
+        const user = await new userService().setFriendRequest(req.user,req.body.friendId)
+        res.status(200).send(user)
+    } catch (error) {
+        res.status(500).send(error.message)
+    }
+})
+
+router.post('/users/acceptedFriendRequest' , auth , async(req,res) => {
+    try {
+        const user = await new userService().acceptedFriendRequest(req.user, req.body.requestId)
+        res.status(200).send(user)
     } catch (error) {
         res.status(500).send(error.message)
     }
