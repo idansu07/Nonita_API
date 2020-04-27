@@ -17,6 +17,7 @@ router.get('/users' , auth ,async (req,res) => {
 })
 
 router.get('/users/me' , auth , async(req,res) => {
+
     try {
         const users =  await new userService().getUsers({ id:req.user._id })
         res.status(200).send(users[0])

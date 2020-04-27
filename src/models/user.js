@@ -94,7 +94,14 @@ const userSchema = new mongoose.Schema({
             type:Date,
             required:true
         }
-    }]
+    }],
+    socketId:{
+        type:String
+    },
+    online:{
+        type:Boolean,
+        required:true
+    }
 }, {
     timestamps:true,
     toObject:{
@@ -176,6 +183,7 @@ userSchema.statics.getUsers = async function(spec = { limit:5 }){
     if(spec.email) query.email = spec.email
     if(spec.firstName) query.firstName = spec.firstName
     if(spec.lastName) query.lastName = spec.lastName
+    if(spec.socketId) query.socketId = spec.socketId
 
     try {
         const users = await User.find(query)

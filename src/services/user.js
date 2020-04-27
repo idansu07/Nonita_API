@@ -83,6 +83,8 @@ class userService {
             user.tokens = user.tokens.filter((token) => {
                 return token.token !== currentToken
             })
+            user.online = false
+            user.socketId = ''
             await user.save()
         } catch (error) {
             throw error
@@ -97,6 +99,10 @@ class userService {
             const reciverUser = users[0]
 
             //Update sender user
+
+            const requestAlreadyExists = senderUser.sentRequests.find(req => req.user._id == reciverUser.id)
+            if(requestAlreadyExists) return senderUser
+
             senderUser.sentRequests = [...senderUser.sentRequests , { 
                 user:reciverUser._id , 
                 createdAt:new Date()
@@ -123,14 +129,14 @@ class userService {
         const request = acceptedUser.requests.find(req => (req.id === requestId))
         if(!request) throw new Error('Request not found')
 
-        const senderId = request.user // Maybe need to replace this to user._id
+        const senderId = request.user 
         try {
             const users = await this.userModel.getUsers({ id: senderId })
             if(!users || users.length === 0) throw new Error('Sender user not found')
             const sender = users[0] 
 
             //Update sender
-            sender.sentRequests = sender.sentRequests.filter(req => (req.id !== acceptedUser._id))
+            sender.sentRequests = sender.sentRequests.filter(req => (req.user != acceptedUser.id))
             sender.friendsList = [...sender.friendsList , { 
                 user: acceptedUser._id,
                 createdAt:new Date()
@@ -152,6 +158,24 @@ class userService {
         
     }
 
+    addSocketId =  async (userId , socketId) => {
+        try {
+            return await this.userModel.findByIdAndUpdate(userId,{ socketId,online:true },{new:true})
+        } catch (error) {
+            throw error
+        }
+    }
+
+    removeSocketId  = async (socketId) => {
+        try {
+            const users = await this.userModel.getUsers({socketId})
+            if(!users || users.length === 0) throw new Error('Reciver user not found')
+            const user = users[0]
+            return await this.userModel.findByIdAndUpdate(user._id ,{ socketId:'',online:false },{new:true})
+        } catch (error) {
+            throw error
+        }
+    }
 }
 
 
